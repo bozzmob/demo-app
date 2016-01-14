@@ -17,13 +17,14 @@ This repository contains a React Native project, implementing the [react-native-
 
 ### APK
 
-This APK is in Debug mode for now. Will move it into **Production mode**(which means, it will be faster and more optimized) soon.
-
-[Download APK](https://github.com/react-native-material-design/demo-app/blob/master/demo-app.apk?raw=true)
+To download the production/release APK, click [here](https://github.com/react-native-material-design/demo-app/raw/master/app-release.apk)
 
 ## Can I use this as a base project?
 
 Of course. Please remember though it is not a "fit all" solution and you'll need to configure it for your own project needs.
+
+To change the name of the project, edit `android/app/src/res/values/strings.xml`.
+To change the launcher icon of the project, change all of the `ic_launcher.png` icons within `android/app/src/res/mipmap-XXXX/`.
 
 ## How it works
 
@@ -45,7 +46,7 @@ found in `./src/utils/Navigate`, which allows for navigation around the app, and
 
 The Navigate class needs to be instantiated on application boot, with a reference to React's `Navigator` API passed. An example of this can be found [here](https://github.com/react-native-material-design/demo-app/blob/master/index.android.js#L39).
 
-Once instantiated, the class exposes a few methods to help with simple app navigation. First however, we must define our routes. The class looks for a `routes.js` file in the root of the `src` directory. 
+Once instantiated, the class exposes a few methods to help with simple app navigation. First however, we must define our routes. The class looks for a `routes.js` file in the root of the `src` directory.
 
 The class also handles `hardwareBackPress` events correctly, only exiting the app if we're on a parent route. Otherwise, it calls the `back()` method.
 
@@ -61,7 +62,7 @@ Top level objects are considered to be the "parent" scenes of your app, and are 
 export default {
 
     parent: {
-        name: 'Parent Scene',
+        title: 'Parent Scene',
         component: require('./scenes/SomeParentScene').default
     }
 
@@ -78,23 +79,24 @@ If you wish to define some children of this route, simply add a `children` objec
 export default {
 
     parent: {
-        name: 'Parent Scene',
+        title: 'Parent Scene',
+        initialRoute: true, // this route will be show on app start
         component: require('./scenes/SomeParentScene').default,
 
         children: {
             child: {
-                name: 'Child Scene',
+                title: 'Child Scene',
                 component: require('./scenes/SomeChildScene').default,
             }
         }
     },
     'Another Parent': { // can be called anything
-        // name: 'Another Parent', // name is optional, defaults to the parent object key name 'Another Parent'
+        // title: 'Another Parent', // title is optional, defaults to the parent object key name 'Another Parent'
         component: require('./scenes/AnotherParentScene').default,
 
         children: {
             'Another Child': { // can be called anything
-                // name: 'Another Child', // name is optional, will default to the parent object key name 'Another Child'
+                // title: 'Another Child', // title is optional, will default to the parent object key name 'Another Child'
                 component: require('./scenes/SomeOtherChildScene').default,
             },
             'Yet Another Child': { // can be called anything
@@ -102,7 +104,7 @@ export default {
             }
         }
     }
-    
+
 }
 ```
 
@@ -110,53 +112,59 @@ You can have as many children, and children of children as you like.
 
 #### API
 
-##### `static init(defaultRoute, [optional] routesConfig)`
+##### `static getInitialRoute([optional] defaultRoute, [optional] routesConfig)`
 
-Can be called without class instantiation, and is used to set a starting route. This is handy for configuring initial routes, for example [here](https://github.com/react-native-material-design/demo-app/blob/master/index.android.js#L62).
+ - **defaultRoute**: Specify a parent route to return. By default however this will look for the first parent on your routes config with
+  `initialRoute: true`, else, if no initial route specified it'll just return the first parent route. 
+ - **routesConfig**: Specify the routes config. This is not required if you have a `routes.js` file setup in `/src`.
+
+Can be called without class instantiation, and is used to get an initial starting route to show initially. 
+
+This is handy for configuring initial routes, for example [here](https://github.com/react-native-material-design/demo-app/blob/master/index.android.js#L62).
 
 ```javascript
-Navigate.init('parent');
+Navigate.getInitialRoute('parent');
 ```
 
-Optionally but not yet implemented you can pass the routes yourself via `Navigate.init('parent', { ...some routes });`
+Optionally you can pass in the routes yourself via `Navigate.getInitialRoute('parent', { ...some routes });`
 
 > This can only be used with parent routes.
 
-##### `to(path, name, props)`
+##### `to(path, title, props)`
 
 Used to directly access any route from any location.
 
 ```javascript
-Navigate.to('root.child', 'Custom Name', { some: 'prop' });
+Navigate.to('root.child', 'Custom Title', { some: 'prop' });
 ```
 
 `path`: <string> Required path to a route.
-`name`: <string> Optional name to use for the route. If left blank, the name from the `routes.js` file will be used.
+`title`: <string> Optional title to use for the route. If left blank, the title/route name from the `routes.js` file will be used.
 `props`: <object> Option object of props to pass to the next scene.
 
-##### `back(name, props)`
+##### `back(title, props)`
 
 Used when going to the parent of the current route.
 
 ```javascript
-Navigate.back('Custom Name', { some: 'prop' });
+Navigate.back('Custom Title', { some: 'prop' });
 ```
 
-`name`: <string> Optional name to use for the route. If left blank, the name from the `routes.js` file will be used.
+`title`: <string> Optional title to use for the route. If left blank, the title/route name from the `routes.js` file will be used.
 `props`: <object> Option object of props to pass to the parent scene.
 
-##### `forward(path, name, props)`
+##### `forward(path, title, props)`
 
 Used when going to a child of the current route.
 
 ```javascript
 // Assuming the current route is "root":
-Navigate.forward('child', 'Custom Name', { some: 'prop' });
-Navigate.forward(null, 'Custom Name', { some: 'prop' });
+Navigate.forward('child', 'Custom Title', { some: 'prop' });
+Navigate.forward(null, 'Custom Title', { some: 'prop' });
 ```
 
 `path`: <string> Optional path to a child route. If no path is supplied, the first child of the parent defined in `routes.js` will be used.
-`name`: <string> Optional name to use for the route. If left blank, the name from the `routes.js` file will be used.
+`title`: <string> Optional name to use for the route. If left blank, the title/route name from the `routes.js` file will be used.
 `props`: <object> Option object of props to pass to the next scene.
 
 ##### `isChild`
